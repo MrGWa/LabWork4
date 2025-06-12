@@ -10,25 +10,33 @@ USE sensor_data;
 
 -- Create table for sensor readings
 CREATE TABLE IF NOT EXISTS sensor_readings (
-    timestamp timestamp,
+    timestamp timestamp PRIMARY KEY,
     temperature_c double,
     humidity_percent double,
-    solar_irradiation double,
-    PRIMARY KEY (timestamp)
+    solar_irradiation double
+);
+
+-- Create table for environment readings with detailed schema
+CREATE TABLE IF NOT EXISTS environment_readings (
+    id UUID,
+    timestamp timestamp,
+    location text,
+    temperature float,
+    humidity float,
+    solar_irradiation float,
+    temp_diff_prev float,
+    humidity_diff_prev float,
+    solar_irradiation_diff_prev float,
+    data_source text,
+    PRIMARY KEY ((id), timestamp)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 
--- Create materialized view for temperature-based queries
-CREATE MATERIALIZED VIEW IF NOT EXISTS sensor_readings_by_temperature AS
-SELECT timestamp, temperature_c, humidity_percent, solar_irradiation
-FROM sensor_readings
-WHERE temperature_c IS NOT NULL
-PRIMARY KEY (temperature_c, timestamp)
-WITH CLUSTERING ORDER BY (timestamp DESC);
+-- Create secondary index on location for efficient location-based queries
+CREATE INDEX IF NOT EXISTS idx_location ON environment_readings (location);
 
--- Create materialized view for humidity-based queries
-CREATE MATERIALIZED VIEW IF NOT EXISTS sensor_readings_by_humidity AS
-SELECT timestamp, temperature_c, humidity_percent, solar_irradiation
-FROM sensor_readings
-WHERE humidity_percent IS NOT NULL
-PRIMARY KEY (humidity_percent, timestamp)
-WITH CLUSTERING ORDER BY (timestamp DESC); 
+DESCRIBE TABLES;
+
+DESCRIBE TABLE sensor_readings;
+DESCRIBE TABLE environment_readings;
+
+DESCRIBE INDEXES ON environment_readings; 
